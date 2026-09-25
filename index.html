@@ -137,12 +137,12 @@ td, th {
 .song-details #today {margin:8px 0}
 .song-number {font-size:14px}
 .settings-chevron {margin-left:auto}
-.settings-symbol {margin-right:7px}
+.settings-symbol {margin-right:7px;display:inline-block;vertical-align:middle;width:23px;height:23px;flex-shrink:0}
 :root[data-theme="gentle"] .app-header .header-emblem {display:grid}
-/* Ver.0.7-A refinement: align control position and ornamental restraint. */
-:root[data-theme="gentle"] main {display:flex;flex-direction:column;min-height:100dvh;padding-bottom:max(58px,env(safe-area-inset-bottom))}
-:root[data-theme="gentle"] details {margin-top:auto;padding-top:30px}
-:root[data-theme="gentle"] .now-card::before,:root[data-theme="gentle"] .now-card::after {opacity:.16}
+/* Japanese A layout: leave a modest ornamental footer, not an empty screen. */
+:root[data-theme="gentle"] main {display:flex;flex-direction:column;min-height:100dvh;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+:root[data-theme="gentle"] details {margin-top:auto;padding-top:22px}
+:root[data-theme="gentle"] .now-card::before,:root[data-theme="gentle"] .now-card::after {opacity:.12}
 /* Ver.0.7-A refinement: match the agreed A screen's proportions and subtle artwork. */
 :root[data-theme="gentle"] body {background:#f4eee1}
 :root[data-theme="gentle"] main {
@@ -255,10 +255,15 @@ td, th {
 }
 :root[data-theme="gentle"] summary::marker {content:""}
 :root[data-theme="gentle"] summary::-webkit-details-marker {display:none}
-:root[data-theme="gentle"] .settings-symbol {font-size:21px;color:#364737}
+:root[data-theme="gentle"] .settings-symbol {width:24px;height:24px;flex:0 0 24px;color:#364737}
 :root[data-theme="gentle"] .settings-chevron {margin-left:auto;font-size:24px}
 :root[data-theme="gentle"] details[open] .settings-chevron {transform:rotate(180deg)}
 :root[data-theme="gentle"] details .card {background:#fffdf8;color:#25382d}
+/* Closed settings card sits above the lower ornament. Expanded settings remain in normal flow. */
+:root[data-theme="gentle"] details:not([open]) {transform:translateY(17px);margin-bottom:0}
+:root[data-theme="gentle"] details[open] {margin-top:26px;padding-top:0}
+:root[data-theme="gentle"] .settings-symbol {stroke-linejoin:round}
+
 @media(max-width:365px) {
   :root[data-theme="gentle"] main {padding-inline:16px}
   :root[data-theme="gentle"] .app-header {gap:10px}
@@ -296,7 +301,7 @@ td, th {
 <p id="error" role="alert"></p>
 
 <details id="settings">
-<summary><span class="settings-symbol" aria-hidden="true">⚙</span><span>設定・再生の詳細</span><span class="settings-chevron" aria-hidden="true">⌄</span></summary>
+<summary><svg class="settings-symbol" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-1.91 1.91-.06-.06A1.65 1.65 0 0 0 16 18.4a1.65 1.65 0 0 0-1 1.5V20h-6v-.1a1.65 1.65 0 0 0-1-1.5 1.65 1.65 0 0 0-1.82.33l-.06.06-1.91-1.91.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.5-1H3v-4h.1a1.65 1.65 0 0 0 1.5-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06 1.91-1.91.06.06A1.65 1.65 0 0 0 8 5.6a1.65 1.65 0 0 0 1-1.5V4h6v.1a1.65 1.65 0 0 0 1 1.5 1.65 1.65 0 0 0 1.82-.33l.06-.06 1.91 1.91-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.5 1h.1v4h-.1a1.65 1.65 0 0 0-1.5 1Z"/></svg><span>設定・再生の詳細</span><span class="settings-chevron" aria-hidden="true">⌄</span></summary>
 <section class="card">
 <h2>画面デザイン</h2>
 <p class="muted">選ぶとすぐに切り替わり、この端末に保存されます。</p>
