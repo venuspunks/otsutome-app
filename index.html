@@ -1,0 +1,704 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+ content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#236747">
+<title>おつとめ再生アプリ</title>
+<style>
+:root {
+  font-family: system-ui, sans-serif;
+  color: #25382d;
+  background: #edf2ed;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+main {
+  max-width: 560px;
+  min-height: 100dvh;
+  margin: auto;
+  padding: 24px 18px 48px;
+  background: white;
+}
+header { text-align: center; margin-bottom: 24px; }
+h1 { font-size: 25px; margin-bottom: 5px; }
+h2 { font-size: 19px; }
+small, .muted { color: #617366; }
+.card {
+  padding: 22px;
+  background: #eef4ef;
+  border-radius: 18px;
+  margin: 18px 0;
+}
+#today { font-size: 16px; }
+#song {
+  font-size: 27px;
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+#status { min-height: 24px; }
+button, select, input {
+  font: inherit;
+}
+button {
+  width: 100%;
+  min-height: 52px;
+  margin: 6px 0;
+  padding: 12px;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.primary {
+  min-height: 84px;
+  background: #236747;
+  color: white;
+  font-size: 23px;
+  font-weight: bold;
+}
+.secondary {
+  background: #e3ece5;
+  color: #25382d;
+}
+audio { width: 100%; margin: 16px 0; }
+details { margin-top: 28px; }
+summary {
+  padding: 17px;
+  border-radius: 12px;
+  background: #e3ece5;
+  font-weight: bold;
+  cursor: pointer;
+}
+label {
+  display: block;
+  margin-top: 18px;
+  font-weight: bold;
+}
+input[type=file], select {
+  display: block;
+  width: 100%;
+  min-height: 50px;
+  margin: 10px 0;
+  padding: 10px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+}
+td, th {
+  padding: 10px 4px;
+  text-align: left;
+  border-bottom: 1px solid #d7e2d9;
+  overflow-wrap: anywhere;
+}
+.notice {
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff3d7;
+}
+#error {
+  color: #ac2525;
+  white-space: pre-wrap;
+}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>おつとめ再生アプリ</h1>
+  <div class="muted">おてふり・7曲ローテーション</div>
+</header>
+
+<section class="card">
+  <p id="today">日付を確認中</p>
+  <h2>本日のおてふり</h2>
+  <div id="song">音源を確認中</div>
+  <p id="status" aria-live="polite">準備中</p>
+</section>
+
+<button id="play" class="primary">
+  ▶ おつとめ開始
+</button>
+
+<button id="pause" class="secondary">
+  一時停止
+</button>
+
+<button id="restart" class="secondary">
+  最初から再生
+</button>
+
+<audio id="audio" controls preload="none"></audio>
+
+<p id="error" role="alert"></p>
+
+<details id="settings">
+<summary>設定を開く</summary>
+
+<section class="card">
+
+<h2>① 音源の登録</h2>
+<p>
+MP3形式の7曲をまとめて選択してください。
+音源はファイル名の番号順に登録します。
+</p>
+
+<input
+ id="files"
+ type="file"
+ accept=".mp3,audio/mpeg"
+ multiple
+>
+
+<p id="count">登録曲数：確認中</p>
+<p id="storage" class="muted"></p>
+
+<small>
+ファイル名の例：
+01_曲名.mp3 ～ 07_曲名.mp3
+</small>
+
+<h2>② 開始曜日</h2>
+
+<label for="weekday">
+1曲目を再生する曜日
+</label>
+
+<select id="weekday">
+  <option value="0">日曜日</option>
+  <option value="1">月曜日</option>
+  <option value="2">火曜日</option>
+  <option value="3">水曜日</option>
+  <option value="4">木曜日</option>
+  <option value="5">金曜日</option>
+  <option value="6">土曜日</option>
+</select>
+
+<button id="save" class="secondary">
+  曜日設定を保存
+</button>
+
+<h2>③ 曜日別の再生予定</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>曜日</th>
+      <th>再生する歌</th>
+    </tr>
+  </thead>
+  <tbody id="schedule"></tbody>
+</table>
+
+</section>
+</details>
+
+<p class="muted">
+Bluetoothスピーカーへの接続は、
+スマホのBluetooth設定から行ってください。
+</p>
+
+</main>
+
+<script>
+"use strict";
+
+const DAYS = [
+ "日曜日", "月曜日", "火曜日", "水曜日",
+ "木曜日", "金曜日", "土曜日"
+];
+
+const $ = id => document.getElementById(id);
+
+const audio = $("audio");
+const DB_NAME = "otsutome_mobile_v3";
+const STORE = "songs";
+
+let db = null;
+let songs = [];
+let currentIndex = -1;
+let currentUrl = null;
+let saving = false;
+
+function readWeekday() {
+  try {
+    const value = localStorage.getItem(
+      "otsutome_start_weekday"
+    );
+    if (value !== null && /^[0-6]$/.test(value)) {
+      return Number(value);
+    }
+  } catch (error) {
+    console.warn(error);
+  }
+  return 1;
+}
+
+let startWeekday = readWeekday();
+$("weekday").value = String(startWeekday);
+
+function todayIndex() {
+  return (
+    new Date().getDay() - startWeekday + 7
+  ) % 7;
+}
+
+function sortFiles(files) {
+  return [...files].sort((a, b) =>
+    a.name.localeCompare(b.name, "ja", {
+      numeric: true,
+      sensitivity: "base"
+    })
+  );
+}
+
+function cleanName(name) {
+  return name.replace(/\.mp3$/i, "");
+}
+
+function reportError(message) {
+  $("error").textContent = message;
+}
+
+function refresh() {
+  const now = new Date();
+
+  $("today").textContent =
+    now.toLocaleDateString("ja-JP", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long"
+    });
+
+  $("count").textContent =
+    `登録曲数：${songs.length}曲 / 7曲`;
+
+  const index = todayIndex();
+
+  if (songs.length !== 7) {
+    $("song").textContent =
+      "音源を7曲登録してください";
+    $("status").textContent = "音源未登録";
+    return;
+  }
+
+  $("song").textContent = cleanName(
+    songs[index].name
+  );
+
+  if (audio.paused && !saving) {
+    $("status").textContent =
+      `${index + 1}曲目 / 全7曲`;
+  }
+}
+
+function updateSchedule() {
+  const tbody = $("schedule");
+  tbody.replaceChildren();
+
+  // 表示順は月曜日から日曜日
+  for (const day of [1,2,3,4,5,6,0]) {
+    const index = (
+      day - startWeekday + 7
+    ) % 7;
+
+    const row = document.createElement("tr");
+    const dayCell = document.createElement("td");
+    const songCell = document.createElement("td");
+
+    dayCell.textContent = DAYS[day];
+
+    songCell.textContent = songs.length === 7
+      ? cleanName(songs[index].name)
+      : `${index + 1}曲目`;
+
+    row.append(dayCell, songCell);
+    tbody.appendChild(row);
+  }
+}
+
+function clearAudio() {
+  audio.pause();
+  audio.removeAttribute("src");
+  audio.load();
+
+  if (currentUrl) {
+    URL.revokeObjectURL(currentUrl);
+    currentUrl = null;
+  }
+
+  currentIndex = -1;
+}
+
+function openDatabase() {
+  return new Promise((resolve, reject) => {
+    if (!("indexedDB" in window)) {
+      reject(new Error(
+        "このブラウザは音源保存に対応していません"
+      ));
+      return;
+    }
+
+    const request = indexedDB.open(DB_NAME, 1);
+
+    request.onupgradeneeded = () => {
+      const database = request.result;
+      if (!database.objectStoreNames.contains(STORE)) {
+        database.createObjectStore(STORE, {
+          keyPath: "id"
+        });
+      }
+    };
+
+    request.onsuccess = () =>
+      resolve(request.result);
+
+    request.onerror = () =>
+      reject(request.error || new Error(
+        "保存領域を開けません"
+      ));
+  });
+}
+
+function loadSongs() {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(
+      STORE, "readonly"
+    );
+    const request = transaction
+      .objectStore(STORE).getAll();
+
+    request.onsuccess = () => {
+      resolve(
+        request.result
+          .sort((a,b) => a.id - b.id)
+          .map(item => item.file)
+      );
+    };
+
+    request.onerror = () =>
+      reject(request.error);
+  });
+}
+
+function saveSongs(files) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(
+      STORE, "readwrite"
+    );
+
+    const store = transaction.objectStore(STORE);
+
+    store.clear();
+
+    files.forEach((file, index) => {
+      store.put({ id: index, file });
+    });
+
+    transaction.oncomplete = resolve;
+
+    transaction.onerror = () =>
+      reject(transaction.error || new Error(
+        "音源を保存できません"
+      ));
+
+    transaction.onabort = () =>
+      reject(transaction.error || new Error(
+        "音源の保存が中断されました"
+      ));
+  });
+}
+
+$("files").addEventListener(
+  "change", async event => {
+
+    if (saving) return;
+
+    const selected = Array.from(
+      event.target.files || []
+    );
+
+    const valid = selected.filter(file =>
+      /\.mp3$/i.test(file.name)
+    );
+
+    if (
+      selected.length !== 7 ||
+      valid.length !== 7
+    ) {
+      alert("MP3ファイルを7曲選択してください。");
+      event.target.value = "";
+      return;
+    }
+
+    if (!db) {
+      reportError(
+        "音源保存を利用できません。" +
+        "ブラウザの設定を確認してください。"
+      );
+      return;
+    }
+
+    const sorted = sortFiles(valid);
+
+    if (!confirm(
+      "選択した7曲で登録音源を入れ替えますか？"
+    )) {
+      event.target.value = "";
+      return;
+    }
+
+    saving = true;
+    $("play").disabled = true;
+    $("restart").disabled = true;
+    $("files").disabled = true;
+    $("status").textContent = "音源を保存中";
+    reportError("");
+
+    try {
+      clearAudio();
+      await saveSongs(sorted);
+
+      // 保存後に読み直して確認する
+      songs = await loadSongs();
+
+      if (songs.length !== 7) {
+        throw new Error(
+          "保存した曲数が正しくありません"
+        );
+      }
+
+      updateSchedule();
+      refresh();
+
+      $("storage").textContent =
+        "音源をこの端末に保存しました。";
+
+      $("status").textContent =
+        "7曲の登録が完了しました";
+
+      alert("7曲を登録・保存しました。");
+
+    } catch (error) {
+      console.error(error);
+
+      reportError(
+        "音源を保存できませんでした。" +
+        "端末の空き容量やブラウザの設定を" +
+        "確認してください。\n" +
+        (error.message || "")
+      );
+
+      try {
+        songs = await loadSongs();
+      } catch (_) {
+        songs = [];
+      }
+
+      updateSchedule();
+      refresh();
+
+    } finally {
+      saving = false;
+      $("play").disabled = false;
+      $("restart").disabled = false;
+      $("files").disabled = false;
+      event.target.value = "";
+    }
+  }
+);
+
+$("save").addEventListener("click", () => {
+  const next = Number($("weekday").value);
+
+  if (!Number.isInteger(next) ||
+      next < 0 || next > 6) {
+    alert("曜日を選択してください。");
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      "otsutome_start_weekday",
+      String(next)
+    );
+  } catch (error) {
+    reportError(
+      "曜日を保存できませんでした。" +
+      "ブラウザの保存設定を確認してください。"
+    );
+    return;
+  }
+
+  clearAudio();
+  startWeekday = next;
+  updateSchedule();
+  refresh();
+
+  $("status").textContent =
+    "開始曜日を保存しました";
+
+  alert(
+    "1曲目の開始曜日を" +
+    DAYS[startWeekday] +
+    "に設定しました。"
+  );
+});
+
+async function playSong(fromBeginning = false) {
+  if (saving) return;
+
+  if (songs.length !== 7) {
+    alert("先に7曲を登録してください。");
+    return;
+  }
+
+  const index = todayIndex();
+
+  if (
+    currentIndex !== index ||
+    !audio.getAttribute("src")
+  ) {
+    clearAudio();
+
+    currentUrl = URL.createObjectURL(
+      songs[index]
+    );
+
+    audio.src = currentUrl;
+    currentIndex = index;
+
+  } else if (fromBeginning) {
+    audio.currentTime = 0;
+  }
+
+  reportError("");
+
+  try {
+    await audio.play();
+    $("status").textContent = "再生中";
+  } catch (error) {
+    console.error(error);
+    reportError(
+      "再生できませんでした。" +
+      "音源と音声出力先を確認してください。"
+    );
+    $("status").textContent = "再生エラー";
+  }
+}
+
+$("play").addEventListener("click", () => {
+  playSong(false);
+});
+
+$("pause").addEventListener("click", () => {
+  audio.pause();
+  $("status").textContent = "一時停止中";
+});
+
+$("restart").addEventListener("click", () => {
+  playSong(true);
+});
+
+audio.addEventListener("ended", () => {
+  $("status").textContent = "再生終了";
+});
+
+audio.addEventListener("error", () => {
+  if (audio.getAttribute("src")) {
+    reportError(
+      "音源の読み込みに失敗しました。"
+    );
+  }
+});
+
+// 翌日になっても、新たな再生時には
+// 必ずその日の曲を選択する。
+function checkDateChange() {
+  if (audio.paused) {
+    if (
+      currentIndex !== -1 &&
+      currentIndex !== todayIndex()
+    ) {
+      clearAudio();
+    }
+    refresh();
+  }
+}
+
+document.addEventListener(
+  "visibilitychange", () => {
+    if (!document.hidden) checkDateChange();
+  }
+);
+
+window.addEventListener(
+  "focus", checkDateChange
+);
+
+// 端末の時刻が変わった際の画面更新
+setInterval(() => {
+  if (!document.hidden && audio.paused) {
+    checkDateChange();
+  }
+}, 60000);
+
+async function initialize() {
+  refresh();
+  updateSchedule();
+
+  $("play").disabled = true;
+
+  try {
+    db = await openDatabase();
+    songs = await loadSongs();
+
+    updateSchedule();
+    refresh();
+
+    if (songs.length === 7) {
+      $("storage").textContent =
+        "保存済みの7曲を読み込みました。";
+    } else {
+      $("storage").textContent =
+        "MP3ファイルを7曲登録してください。";
+    }
+
+    // 対応ブラウザでは保存領域の
+    // 自動削除リスクの低減を要求する。
+    if (
+      navigator.storage &&
+      navigator.storage.persist
+    ) {
+      navigator.storage.persist().catch(
+        () => {}
+      );
+    }
+
+  } catch (error) {
+    console.error(error);
+    reportError(
+      "音源の保存領域を開けませんでした。" +
+      "通常モードのブラウザで開き直してください。"
+    );
+    $("status").textContent = "保存機能エラー";
+  } finally {
+    $("play").disabled = false;
+  }
+}
+
+initialize();
+
+</script>
+</body>
+</html>
