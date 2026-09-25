@@ -131,20 +131,136 @@ td, th {
 .theme-option {display:flex;align-items:center;gap:12px;padding:12px 8px;min-height:48px;border-bottom:1px solid var(--line)}
 .theme-option input {flex:0 0 auto;width:22px;height:22px;margin:0;accent-color:var(--accent)}
 .theme-option span {font-weight:600}
+
+.app-header .header-emblem {display:none}
+.song-details {display:flex;justify-content:space-between;align-items:center;gap:10px}
+.song-details #today {margin:8px 0}
+.song-number {font-size:14px}
+.settings-chevron {margin-left:auto}
+.settings-symbol {margin-right:7px}
+:root[data-theme="gentle"] .app-header .header-emblem {display:grid}
+/* Ver.0.7-A: illustrated Japanese design; all overrides remain theme-scoped. */
+:root[data-theme="gentle"] body {background:#f3eddf}
+:root[data-theme="gentle"] main {
+  position:relative; isolation:isolate; overflow:hidden; max-width:560px;
+  background:linear-gradient(150deg,#fffdf7 0%,#fbf5e9 66%,#f2ead9 100%);
+  min-height:100dvh; padding:42px clamp(18px,5vw,30px) 100px;
+  box-shadow:0 0 32px #66573817;
+}
+:root[data-theme="gentle"] main::before {
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:url("./gentle-decoration.svg") center center / 100% 100% no-repeat;
+}
+:root[data-theme="gentle"] main::after {
+  content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
+  opacity:.3;background-image:radial-gradient(#c5b9a2 .45px,transparent .6px);
+  background-size:7px 7px;
+}
+:root[data-theme="gentle"] .app-header {
+  display:flex;align-items:center;justify-content:center;gap:15px;
+  margin:13px 0 34px;text-align:left;
+}
+:root[data-theme="gentle"] .header-copy {min-width:0}
+:root[data-theme="gentle"] h1 {
+  margin:0 0 7px;font-size:clamp(21px,5.5vw,28px);letter-spacing:.035em;
+  font-family: "Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  white-space:nowrap;
+}
+:root[data-theme="gentle"] header .muted {font-size:14px;color:#4c5346;letter-spacing:.045em}
+:root[data-theme="gentle"] .header-emblem {
+  display:grid;place-items:center;flex:0 0 62px;width:62px;height:62px;
+  border:5px solid #fff;border-radius:50%;background:#244d3b;color:#fff;
+  font-size:37px;font-family:Georgia,serif;
+  box-shadow:0 0 0 2px #2d4937,0 3px 10px #1b342322;
+}
+:root[data-theme="gentle"] .now-card {
+  position:relative;overflow:hidden;margin:0 0 25px;padding:25px 19px 17px;
+  background:#fffdf8;border:1px solid #eadfca;border-radius:22px;
+  text-align:center;box-shadow:0 8px 20px #4c43261b,0 2px 5px #4c432610;
+}
+:root[data-theme="gentle"] .now-card::before,
+:root[data-theme="gentle"] .now-card::after {
+  content:"";position:absolute;width:100px;height:75px;opacity:.5;pointer-events:none;
+  background:radial-gradient(ellipse at 22% 44%,#c8d6bf 0 18%,transparent 19%),
+  radial-gradient(ellipse at 65% 30%,#a8bfa2 0 17%,transparent 18%),
+  radial-gradient(ellipse at 72% 70%,#c1d0b7 0 20%,transparent 21%);
+}
+:root[data-theme="gentle"] .now-card::before {left:-37px;top:-23px;transform:rotate(-25deg)}
+:root[data-theme="gentle"] .now-card::after {right:-32px;bottom:0;transform:rotate(110deg)}
+:root[data-theme="gentle"] .today-label {
+  position:relative;z-index:1;display:inline-block;border-radius:99px;
+  background:#3e6b52;color:white;font-size:17px;font-weight:700;
+  margin:0 0 24px;padding:9px 22px;
+}
+:root[data-theme="gentle"] #song {
+  position:relative;z-index:1;color:#17241a;
+  font-size:clamp(25px,7vw,36px);line-height:1.4;font-weight:700;
+  font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  margin:0 0 24px;overflow-wrap:anywhere;
+}
+:root[data-theme="gentle"] .song-details {
+  position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin:0 0 8px;
+}
+:root[data-theme="gentle"] #today {margin:0;font-size:15px;color:#333a32;text-align:left}
+:root[data-theme="gentle"] .song-number {
+  flex:0 0 auto;display:inline-block;border-radius:99px;padding:7px 13px;
+  font-size:16px;font-weight:700;background:#f1e6cf;color:#333a32;
+}
+:root[data-theme="gentle"] #status {font-size:13px;margin:11px 0 0;color:#56665a;min-height:0}
+:root[data-theme="gentle"] .primary {
+  margin:0 0 18px;min-height:90px;border:1px solid #74977e;border-radius:48px;
+  background:linear-gradient(#44795b,#28543f);color:#fff;
+  box-shadow:inset 0 2px 1px #fff5,0 5px 0 #204735,0 9px 15px #28473429;
+  font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  font-size:clamp(20px,5.8vw,27px);letter-spacing:.035em;
+}
+:root[data-theme="gentle"] #play[aria-pressed="true"] {
+  background:linear-gradient(#a27b4c,#805b34);box-shadow:inset 0 2px 1px #fff4,0 4px 0 #6e4e2b;
+}
+:root[data-theme="gentle"] .playback-time {
+  color:#253329;margin:15px 5px 8px;font-size:15px;font-weight:600;
+}
+:root[data-theme="gentle"] .playback-progress {
+  height:11px;margin:0 4px 39px;width:calc(100% - 8px);
+  background:#d9e0d7;border:1px solid #bdc9b9;
+}
+:root[data-theme="gentle"] .playback-progress::-webkit-progress-bar {background:#d9e0d7}
+:root[data-theme="gentle"] .playback-progress::-webkit-progress-value {background:#34694d;border-radius:99px}
+:root[data-theme="gentle"] .playback-progress::-moz-progress-bar {background:#34694d}
+:root[data-theme="gentle"] details {margin-top:0}
+:root[data-theme="gentle"] summary {
+  display:flex;gap:12px;align-items:center;min-height:72px;
+  padding:15px 18px;border-radius:16px;border:1px solid #dcd2bd;
+  background:#fffaf0;box-shadow:0 3px 12px #4c432611;font-size:17px;
+}
+:root[data-theme="gentle"] summary::marker {content:""}
+:root[data-theme="gentle"] summary::-webkit-details-marker {display:none}
+:root[data-theme="gentle"] .settings-symbol {font-size:24px;color:#354a37}
+:root[data-theme="gentle"] .settings-chevron {margin-left:auto;font-size:25px}
+:root[data-theme="gentle"] details[open] .settings-chevron {transform:rotate(180deg)}
+:root[data-theme="gentle"] details .card {background:#fffdf9;color:#25382d}
+@media(max-width:365px){
+  :root[data-theme="gentle"] .app-header {gap:10px}
+  :root[data-theme="gentle"] .header-emblem {flex-basis:49px;width:49px;height:49px;font-size:29px}
+  :root[data-theme="gentle"] h1 {font-size:20px}
+  :root[data-theme="gentle"] .now-card {padding-inline:14px}
+}
+
 </style>
 </head>
 <body>
 <main>
 
-<header>
-  <h1>おつとめ再生アプリ</h1>
-  <div class="muted">おてふり・7曲ローテーション</div>
+<header class="app-header">
+  <span class="header-emblem" aria-hidden="true">♪</span>
+  <div class="header-copy"><h1>おつとめ再生アプリ</h1><div class="muted">7曲ローテーション</div></div>
 </header>
 
-<section class="card">
-  <p id="today">日付を確認中</p>
-  <h2>本日のおてふり</h2>
+<section class="card now-card">
+  <h2 class="today-label">本日のおてふり</h2>
   <div id="song">音源を確認中</div>
+  <div class="song-details"><p id="today">日付を確認中</p><span id="song-number" class="song-number">—曲目</span></div>
   <p id="status" aria-live="polite">準備中</p>
 </section>
 
@@ -159,7 +275,7 @@ td, th {
 <p id="error" role="alert"></p>
 
 <details id="settings">
-<summary>設定・再生の詳細</summary>
+<summary><span class="settings-symbol" aria-hidden="true">⚙</span><span>設定・再生の詳細</span><span class="settings-chevron" aria-hidden="true">⌄</span></summary>
 <section class="card">
 <h2>画面デザイン</h2>
 <p class="muted">選ぶとすぐに切り替わり、この端末に保存されます。</p>
@@ -348,6 +464,7 @@ function refresh() {
 
   $("count").textContent =
     `登録曲数：${songs.length}曲 / 7曲`;
+  $("song-number").textContent = songs.length === 7 ? `${todayIndex()+1}曲目` : "—曲目";
 
   const index = todayIndex();
 
