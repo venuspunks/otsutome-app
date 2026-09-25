@@ -72,6 +72,11 @@ button:disabled {
   color: #25382d;
 }
 audio { width: 100%; margin: 12px 0; }
+.playback-time { margin: 7px 2px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; font-size: 16px; color: #425b49; }
+.playback-progress { display: block; width: 100%; height: 8px; margin: 10px 0 14px; appearance: none; border: 0; border-radius: 99px; overflow: hidden; background: #d9e6dc; }
+.playback-progress::-webkit-progress-bar { background: #d9e6dc; border-radius: 99px; }
+.playback-progress::-webkit-progress-value { background: #236747; border-radius: 99px; }
+.playback-progress::-moz-progress-bar { background: #236747; }
 .primary:focus-visible, .secondary:focus-visible { outline: 3px solid #111; outline-offset: 3px; }
 #play[aria-pressed="true"] { background: #885d21; }
 details { margin-top: 28px; }
@@ -135,6 +140,8 @@ td, th {
   ▶ おつとめ開始
 </button>
 
+<div class="playback-time" aria-label="再生時間"><span id="elapsed">経過 0:00</span><span id="remaining">全体 --:--</span></div>
+<progress class="playback-progress" id="progress" max="100" value="0" aria-label="再生の進み具合"></progress>
 <audio id="audio" preload="none"></audio>
 
 <p id="error" role="alert"></p>
@@ -232,6 +239,22 @@ let currentIndex = -1;
 let currentUrl = null;
 let saving = false;
 let playPending = false;
+function formatTime(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return "--:--";
+  const whole = Math.floor(seconds);
+  const minutes = Math.floor(whole / 60);
+  return `${minutes}:${String(whole % 60).padStart(2,"0")}`;
+}
+function updatePlaybackTime() {
+  const elapsed = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+  const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
+  $("elapsed").textContent = `経過 ${formatTime(elapsed)}`;
+  $("remaining").textContent = `全体 ${duration ? formatTime(duration) : "--:--"}`;
+  $("progress").value = duration ? Math.min(100, elapsed / duration * 100) : 0;
+}
+["loadedmetadata","durationchange","timeupdate","seeked","emptied","ended"].forEach(event => {
+  audio.addEventListener(event, updatePlaybackTime);
+});
 function updateMainButton() {
   const playing = !audio.paused && !audio.ended;
   const button = $("play");
@@ -349,6 +372,7 @@ function clearAudio() {
   }
 
   currentIndex = -1;
+  updatePlaybackTime();
   updateMainButton();
 }
 
