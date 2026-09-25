@@ -1,9 +1,13 @@
 /* App shell only: private MP3 files and IndexedDB are never cached here. */
-const CACHE = "otsutome-shell-v13";
+const CACHE = "otsutome-shell-v14";
 const BASE = self.registration.scope;
 const SHELL = [BASE, new URL("index.html",BASE).href, new URL("manifest.webmanifest",BASE).href, new URL("icon.svg",BASE).href, new URL("gentle-decoration.svg",BASE).href];
+const OPTIONAL_ARTWORK = [new URL("footer.png",BASE).href,new URL("haikei.png",BASE).href];
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
+  event.waitUntil(caches.open(CACHE).then(async cache => {
+    await cache.addAll(SHELL);
+    await Promise.allSettled(OPTIONAL_ARTWORK.map(url => cache.add(url)));
+  }));
 });
 self.addEventListener("activate", event => {
   event.waitUntil(Promise.all([
@@ -24,6 +28,16 @@ self.addEventListener("fetch", event => {
       }
       return response;
     }).catch(() => caches.match(new URL("index.html",BASE).href).then(r => r || Response.error())));
+    return;
+  }
+  if (OPTIONAL_ARTWORK.includes(url.href)) {
+    event.respondWith(caches.match(req).then(hit => hit || fetch(req).then(response => {
+      if (response.ok) {
+        const copy = response.clone();
+        event.waitUntil(caches.open(CACHE).then(cache => cache.put(req,copy)));
+      }
+      return response;
+    })));
     return;
   }
   if (!SHELL.includes(url.href)) return;
