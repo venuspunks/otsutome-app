@@ -1,8 +1,8 @@
 /* App shell only: private MP3 files and IndexedDB are never cached here. */
-const CACHE = "otsutome-shell-v14";
+const CACHE = "otsutome-shell-v15";
 const BASE = self.registration.scope;
 const SHELL = [BASE, new URL("index.html",BASE).href, new URL("manifest.webmanifest",BASE).href, new URL("icon.svg",BASE).href, new URL("gentle-decoration.svg",BASE).href];
-const OPTIONAL_ARTWORK = [new URL("footer.png",BASE).href,new URL("haikei.png",BASE).href];
+const OPTIONAL_ARTWORK = [new URL("gentle-footer.png",BASE).href,new URL("gentle-leaves.png",BASE).href];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(async cache => {
     await cache.addAll(SHELL);
