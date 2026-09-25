@@ -71,7 +71,9 @@ button:disabled {
   background: #e3ece5;
   color: #25382d;
 }
-audio { width: 100%; margin: 16px 0; }
+audio { width: 100%; margin: 12px 0; }
+.primary:focus-visible, .secondary:focus-visible { outline: 3px solid #111; outline-offset: 3px; }
+#play[aria-pressed="true"] { background: #885d21; }
 details { margin-top: 28px; }
 summary {
   padding: 17px;
@@ -129,24 +131,21 @@ td, th {
   <p id="status" aria-live="polite">準備中</p>
 </section>
 
-<button id="play" class="primary">
+<button id="play" class="primary" aria-pressed="false" disabled>
   ▶ おつとめ開始
 </button>
 
-<button id="pause" class="secondary">
-  一時停止
-</button>
-
-<button id="restart" class="secondary">
-  最初から再生
-</button>
-
-<audio id="audio" controls preload="none"></audio>
+<audio id="audio" preload="none"></audio>
 
 <p id="error" role="alert"></p>
 
 <details id="settings">
-<summary>設定を開く</summary>
+<summary>設定・再生の詳細</summary>
+<section class="card">
+<h2>再生の詳細操作</h2>
+<p class="muted">通常は上の大きなボタンだけで操作できます。</p>
+<button id="restart" class="secondary">↺ 本日の歌を最初から再生</button>
+</section>
 
 <section class="card">
 
@@ -232,6 +231,14 @@ let songs = [];
 let currentIndex = -1;
 let currentUrl = null;
 let saving = false;
+let playPending = false;
+function updateMainButton() {
+  const playing = !audio.paused && !audio.ended;
+  const button = $("play");
+  button.textContent = playPending ? "読み込み中…" : (playing ? "Ⅱ 一時停止" : "▶ おつとめ開始");
+  button.setAttribute("aria-pressed", String(playing));
+  button.disabled = saving || playPending || !db || songs.length !== 7;
+}
 
 function readWeekday() {
   try {
@@ -342,6 +349,7 @@ function clearAudio() {
   }
 
   currentIndex = -1;
+  updateMainButton();
 }
 
 function openDatabase() {
@@ -484,6 +492,7 @@ $("files").addEventListener(
 
       updateSchedule();
       refresh();
+      updateMainButton();
 
       $("storage").textContent =
         "音源をこの端末に保存しました。";
@@ -511,10 +520,11 @@ $("files").addEventListener(
 
       updateSchedule();
       refresh();
+      updateMainButton();
 
     } finally {
       saving = false;
-      $("play").disabled = false;
+      updateMainButton();
       $("restart").disabled = false;
       $("files").disabled = false;
       event.target.value = "";
@@ -589,6 +599,8 @@ async function playSong(fromBeginning = false) {
   reportError("");
 
   try {
+    playPending = true;
+    updateMainButton();
     await audio.play();
     $("status").textContent = "再生中";
   } catch (error) {
@@ -598,17 +610,25 @@ async function playSong(fromBeginning = false) {
       "音源と音声出力先を確認してください。"
     );
     $("status").textContent = "再生エラー";
+  } finally {
+    playPending = false;
+    updateMainButton();
   }
 }
 
 $("play").addEventListener("click", () => {
+  if (playPending || saving) return;
+  if (!audio.paused && !audio.ended) {
+    audio.pause();
+    $("status").textContent = "一時停止中";
+    updateMainButton();
+    return;
+  }
+  if (audio.ended) audio.currentTime = 0;
   playSong(false);
 });
-
-$("pause").addEventListener("click", () => {
-  audio.pause();
-  $("status").textContent = "一時停止中";
-});
+audio.addEventListener("play", updateMainButton);
+audio.addEventListener("pause", updateMainButton);
 
 $("restart").addEventListener("click", () => {
   playSong(true);
@@ -616,6 +636,7 @@ $("restart").addEventListener("click", () => {
 
 audio.addEventListener("ended", () => {
   $("status").textContent = "再生終了";
+  updateMainButton();
 });
 
 audio.addEventListener("error", () => {
@@ -669,6 +690,7 @@ async function initialize() {
 
     updateSchedule();
     refresh();
+    updateMainButton();
 
     if (songs.length === 7) {
       $("storage").textContent =
@@ -697,7 +719,7 @@ async function initialize() {
     );
     $("status").textContent = "保存機能エラー";
   } finally {
-    $("play").disabled = false;
+    updateMainButton();
   }
 }
 
