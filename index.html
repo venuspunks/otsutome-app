@@ -6,6 +6,10 @@
 <meta name="viewport"
  content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#236747">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="おつとめ">
 <title>おつとめ再生アプリ</title>
 <style>
 :root {
@@ -698,6 +702,14 @@ async function initialize() {
 }
 
 initialize();
+
+// Keep the app shell available when the network is unavailable.
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js", {scope:"./"})
+      .catch(error => console.warn("オフライン起動の設定に失敗しました", error));
+  });
+}
 
 </script>
 </body>
