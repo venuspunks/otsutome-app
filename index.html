@@ -5,18 +5,16 @@
 <meta charset="UTF-8">
 <meta name="viewport"
  content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#236747">
+<meta name="theme-color" content="#236747" id="theme-color">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="おつとめ">
 <title>おつとめ再生アプリ</title>
 <style>
-:root {
-  font-family: system-ui, sans-serif;
-  color: #25382d;
-  background: #edf2ed;
-}
+:root {font-family:system-ui,sans-serif;--bg:#f7f4ec;--surface:#fffdf8;--panel:#f3ecdd;--ink:#2f352f;--muted:#586a5a;--accent:#3e6b52;--pressed:#9a6d43;--secondary:#e7eadf;--line:#cbd6c5;color:var(--ink);background:var(--bg)}
+:root[data-theme="clean"] {--bg:#eef4ef;--surface:#fff;--panel:#eef4ef;--ink:#25382d;--muted:#617366;--accent:#236747;--pressed:#885d21;--secondary:#e3ece5;--line:#d9e6dc}
+:root[data-theme="formal"] {--bg:#0c2827;--surface:#102f2d;--panel:#fffaf0;--ink:#f7f3e8;--muted:#d5e2da;--accent:#8a642d;--pressed:#6e4c22;--secondary:#25443f;--line:#a8874e}
 * { box-sizing: border-box; }
 body { margin: 0; }
 main {
@@ -24,15 +22,15 @@ main {
   min-height: 100dvh;
   margin: auto;
   padding: 24px 18px 48px;
-  background: white;
+  background: var(--surface);
 }
 header { text-align: center; margin-bottom: 24px; }
 h1 { font-size: 25px; margin-bottom: 5px; }
 h2 { font-size: 19px; }
-small, .muted { color: #617366; }
+small, .muted { color: var(--muted); }
 .card {
   padding: 22px;
-  background: #eef4ef;
+  background: var(--panel);
   border-radius: 18px;
   margin: 18px 0;
 }
@@ -62,28 +60,28 @@ button:disabled {
 }
 .primary {
   min-height: 84px;
-  background: #236747;
+  background: var(--accent);
   color: white;
   font-size: 23px;
   font-weight: bold;
 }
 .secondary {
-  background: #e3ece5;
-  color: #25382d;
+  background: var(--secondary);
+  color: var(--ink);
 }
 audio { width: 100%; margin: 12px 0; }
-.playback-time { margin: 7px 2px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; font-size: 16px; color: #425b49; }
-.playback-progress { display: block; width: 100%; height: 8px; margin: 10px 0 14px; appearance: none; border: 0; border-radius: 99px; overflow: hidden; background: #d9e6dc; }
-.playback-progress::-webkit-progress-bar { background: #d9e6dc; border-radius: 99px; }
-.playback-progress::-webkit-progress-value { background: #236747; border-radius: 99px; }
-.playback-progress::-moz-progress-bar { background: #236747; }
+.playback-time { margin: 7px 2px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; font-size: 16px; color: var(--muted); }
+.playback-progress { display: block; width: 100%; height: 8px; margin: 10px 0 14px; appearance: none; border: 0; border-radius: 99px; overflow: hidden; background: var(--line); }
+.playback-progress::-webkit-progress-bar { background: var(--line); border-radius: 99px; }
+.playback-progress::-webkit-progress-value { background: var(--accent); border-radius: 99px; }
+.playback-progress::-moz-progress-bar { background: var(--accent); }
 .primary:focus-visible, .secondary:focus-visible { outline: 3px solid #111; outline-offset: 3px; }
-#play[aria-pressed="true"] { background: #885d21; }
+#play[aria-pressed="true"] { background: var(--pressed); }
 details { margin-top: 28px; }
 summary {
   padding: 17px;
   border-radius: 12px;
-  background: #e3ece5;
+  background: var(--secondary);
   font-weight: bold;
   cursor: pointer;
 }
@@ -107,7 +105,7 @@ table {
 td, th {
   padding: 10px 4px;
   text-align: left;
-  border-bottom: 1px solid #d7e2d9;
+  border-bottom: 1px solid var(--line);
   overflow-wrap: anywhere;
 }
 .notice {
@@ -119,6 +117,20 @@ td, th {
   color: #ac2525;
   white-space: pre-wrap;
 }
+
+.card {color:#25382d}
+:root[data-theme="formal"] main {background:linear-gradient(155deg,#143e3a,#092421)}
+:root[data-theme="formal"] header h1,:root[data-theme="formal"] header .muted {color:#f6f0df}
+:root[data-theme="formal"] .card {border:1px solid #b99c64;box-shadow:0 5px 18px #0002}
+:root[data-theme="formal"] .primary {border:1px solid #d6b473}
+:root[data-theme="formal"] .secondary,:root[data-theme="formal"] summary {color:#fff8ed;border:1px solid #896f4a}
+:root[data-theme="formal"] input,:root[data-theme="formal"] select {color:#25382d;background:#fffaf0}
+:root[data-theme="gentle"] main {background:linear-gradient(180deg,#fffdf8,#f7f1e4)}
+:root[data-theme="gentle"] .card {border:1px solid #e5ddca;box-shadow:0 4px 14px #4e4a3610}
+:root[data-theme="clean"] .card {box-shadow:0 5px 18px #163b2910}
+.theme-option {display:flex;align-items:center;gap:12px;padding:12px 8px;min-height:48px;border-bottom:1px solid var(--line)}
+.theme-option input {flex:0 0 auto;width:22px;height:22px;margin:0;accent-color:var(--accent)}
+.theme-option span {font-weight:600}
 </style>
 </head>
 <body>
@@ -148,6 +160,13 @@ td, th {
 
 <details id="settings">
 <summary>設定・再生の詳細</summary>
+<section class="card">
+<h2>画面デザイン</h2>
+<p class="muted">選ぶとすぐに切り替わり、この端末に保存されます。</p>
+<label class="theme-option"><input type="radio" name="theme" value="gentle"><span>A・やさしい和風</span></label>
+<label class="theme-option"><input type="radio" name="theme" value="clean"><span>B・清潔感重視</span></label>
+<label class="theme-option"><input type="radio" name="theme" value="formal"><span>C・少し格式あり</span></label>
+</section>
 <section class="card">
 <h2>再生の詳細操作</h2>
 <p class="muted">通常は上の大きなボタンだけで操作できます。</p>
@@ -230,6 +249,19 @@ const DAYS = [
 const $ = id => document.getElementById(id);
 
 const audio = $("audio");
+const THEMES = ["gentle","clean","formal"];
+function applyTheme(theme, persist = false) {
+ const next = THEMES.includes(theme) ? theme : "gentle";
+ document.documentElement.dataset.theme = next;
+ document.querySelectorAll('input[name="theme"]').forEach(input => {input.checked = input.value === next;});
+ const meta = document.getElementById("theme-color");
+ if(meta)meta.content=next==="formal"?"#0c2827":next==="clean"?"#236747":"#f7f4ec";
+ if(persist)try{localStorage.setItem("otsutome_design_theme",next)}catch(error){console.warn(error)}
+}
+let savedTheme="gentle";
+try{savedTheme=localStorage.getItem("otsutome_design_theme")||"gentle"}catch(_){}
+applyTheme(savedTheme);
+document.querySelectorAll('input[name="theme"]').forEach(input=>input.addEventListener("change",()=>applyTheme(input.value,true)));
 const DB_NAME = "otsutome_mobile_v3";
 const STORE = "songs";
 
