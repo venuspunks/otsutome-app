@@ -10,7 +10,7 @@
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="おつとめ">
-<title>おつとめ再生アプリ</title>
+<title>みかぐらうた｜毎日のおてふり</title>
 <style>
 :root {font-family:system-ui,sans-serif;--bg:#f7f4ec;--surface:#fffdf8;--panel:#f3ecdd;--ink:#2f352f;--muted:#586a5a;--accent:#3e6b52;--pressed:#9a6d43;--secondary:#e7eadf;--line:#cbd6c5;color:var(--ink);background:var(--bg)}
 :root[data-theme="clean"] {--bg:#eef4ef;--surface:#fff;--panel:#eef4ef;--ink:#25382d;--muted:#617366;--accent:#236747;--pressed:#885d21;--secondary:#e3ece5;--line:#d9e6dc}
@@ -296,6 +296,34 @@ td, th {
 :root[data-theme="gentle"] .now-card::after {display:none}
 /* Other themes retain their existing design. */
 
+/* Common: remove the song-number badge and center the date. */
+.song-details {display:flex;align-items:center;justify-content:center;text-align:center}
+.song-details #today {width:100%;margin:8px auto;text-align:center}
+:root[data-theme="gentle"] .song-details {justify-content:center}
+:root[data-theme="gentle"] #today {width:100%;margin:0 auto;text-align:center}
+/* Common: touch-accessible seek slider, preserving the established progress-bar position. */
+.progress-wrap::after,:root[data-theme="gentle"] .progress-wrap::after {content:none;display:none}
+.progress-wrap {height:36px;display:flex;align-items:center}
+#seek {
+ display:block;box-sizing:border-box;width:100%;height:10px;margin:12px 0;
+ padding:0;min-height:0;border:0;border-radius:99px;
+ appearance:none;-webkit-appearance:none;cursor:pointer;
+ background:linear-gradient(to right,var(--accent) 0%,var(--accent) var(--seek-percent,0%),var(--line) var(--seek-percent,0%),var(--line) 100%);
+ touch-action:pan-y;
+}
+#seek::-webkit-slider-runnable-track {height:10px;border-radius:99px;background:transparent}
+#seek::-moz-range-track {height:10px;border-radius:99px;background:transparent}
+#seek::-webkit-slider-thumb {
+ appearance:none;-webkit-appearance:none;width:22px;height:22px;
+ margin-top:-6px;border:2px solid var(--accent);border-radius:50%;
+ background:#fff;box-shadow:0 1px 5px #142c262b;
+}
+#seek::-moz-range-thumb {width:19px;height:19px;border:2px solid var(--accent);border-radius:50%;background:#fff;box-shadow:0 1px 5px #142c262b}
+#seek:disabled {opacity:.5;cursor:not-allowed}
+#seek:focus-visible {outline:3px solid var(--accent);outline-offset:6px}
+:root[data-theme="gentle"] .progress-wrap {height:36px;margin-bottom:24px}
+:root[data-theme="gentle"] #seek {width:100%;height:10px;margin:12px 0}
+
 </style>
 </head>
 <body>
@@ -303,13 +331,13 @@ td, th {
 
 <header class="app-header">
   <span class="header-emblem" aria-hidden="true">♪</span>
-  <div class="header-copy"><h1>おつとめ再生アプリ</h1><div class="muted">7曲ローテーション</div></div>
+  <div class="header-copy"><h1>みかぐらうた</h1><div class="muted">毎日のおてふり</div></div>
 </header>
 
 <section class="card now-card">
   <h2 class="today-label">本日のおてふり</h2>
   <div id="song">音源を確認中</div>
-  <div class="song-details"><p id="today">日付を確認中</p><span id="song-number" class="song-number">—曲目</span></div>
+  <div class="song-details"><p id="today">日付を確認中</p></div>
   <p id="status" aria-live="polite">準備中</p>
 </section>
 
@@ -318,7 +346,7 @@ td, th {
 </button>
 
 <div class="playback-time" aria-label="再生時間"><span id="elapsed">経過 0:00</span><span id="remaining">全体 --:--</span></div>
-<div class="progress-wrap" id="progress-wrap"><progress class="playback-progress" id="progress" max="100" value="0" aria-label="再生の進み具合"></progress></div>
+<div class="progress-wrap" id="progress-wrap"><input class="playback-progress" type="range" id="seek" min="0" max="1000" step="1" value="0" disabled aria-label="再生位置を変更" aria-valuetext="0:00 / --:--"></div>
 <audio id="audio" preload="none"></audio>
 
 <p id="error" role="alert"></p>
@@ -437,19 +465,42 @@ function formatTime(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) return "--:--";
   const whole = Math.floor(seconds);
   const minutes = Math.floor(whole / 60);
-  return `${minutes}:${String(whole % 60).padStart(2,"0")}`;
+  return minutes + ":" + String(whole % 60).padStart(2,"0");
+}
+let seeking = false;
+const seek = $("seek");
+function setSeekView(percent) {
+  const value = Math.min(1000,Math.max(0,percent));
+  seek.value = String(Math.round(value));
+  seek.style.setProperty("--seek-percent", (value / 10) + "%");
 }
 function updatePlaybackTime() {
-  const elapsed = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
   const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
-  $("elapsed").textContent = `経過 ${formatTime(elapsed)}`;
-  $("remaining").textContent = `全体 ${duration ? formatTime(duration) : "--:--"}`;
-  const progress = duration ? Math.min(100, elapsed / duration * 100) : 0;
-  $("progress").value = progress;
-  $("progress-wrap").style.setProperty("--progress-pct", progress.toFixed(2));
+  const elapsed = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+  seek.disabled = !duration || !audio.getAttribute("src");
+  $("remaining").textContent = "全体 " + (duration ? formatTime(duration) : "--:--");
+  if (!seeking) {
+    $("elapsed").textContent = "経過 " + formatTime(elapsed);
+    setSeekView(duration ? elapsed / duration * 1000 : 0);
+  }
+  seek.setAttribute("aria-valuetext",formatTime(seeking && duration ? Number(seek.value) / 1000 * duration : elapsed) + " / " + (duration ? formatTime(duration) : "--:--"));
 }
+function moveSeek() {
+  const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
+  if (!duration || !audio.getAttribute("src")) return;
+  seeking = true;
+  const target = Number(seek.value) / 1000 * duration;
+  setSeekView(Number(seek.value));
+  $("elapsed").textContent = "経過 " + formatTime(target);
+  seek.setAttribute("aria-valuetext",formatTime(target) + " / " + formatTime(duration));
+  try { audio.currentTime = Math.min(duration,Math.max(0,target)); }
+  catch (error) { console.warn("再生位置を変更できません",error); }
+}
+seek.addEventListener("input",moveSeek);
+seek.addEventListener("change",() => { moveSeek(); seeking = false; updatePlaybackTime(); });
+seek.addEventListener("pointercancel",() => {seeking = false;updatePlaybackTime();});
 ["loadedmetadata","durationchange","timeupdate","seeked","emptied","ended"].forEach(event => {
-  audio.addEventListener(event, updatePlaybackTime);
+  audio.addEventListener(event,updatePlaybackTime);
 });
 function updateMainButton() {
   const playing = !audio.paused && !audio.ended;
@@ -506,7 +557,6 @@ function refresh() {
 
   $("count").textContent =
     `登録曲数：${songs.length}曲 / 7曲`;
-  $("song-number").textContent = songs.length === 7 ? `${todayIndex()+1}曲目` : "—曲目";
 
   const index = todayIndex();
 
@@ -523,7 +573,7 @@ function refresh() {
 
   if (audio.paused && !saving) {
     $("status").textContent =
-      `${index + 1}曲目 / 全7曲`;
+      "再生待機中";
   }
 }
 
