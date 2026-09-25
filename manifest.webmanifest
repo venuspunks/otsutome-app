@@ -1,0 +1,20 @@
+{
+  "id": "/otsutome-app/",
+  "name": "おつとめ再生アプリ",
+  "short_name": "おつとめ",
+  "description": "おてふりの歌を曜日ごとに再生",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#edf2ed",
+  "theme_color": "#236747",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
