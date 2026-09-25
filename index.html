@@ -139,112 +139,129 @@ td, th {
 .settings-chevron {margin-left:auto}
 .settings-symbol {margin-right:7px}
 :root[data-theme="gentle"] .app-header .header-emblem {display:grid}
-/* Ver.0.7-A: illustrated Japanese design; all overrides remain theme-scoped. */
-:root[data-theme="gentle"] body {background:#f3eddf}
+/* Ver.0.7-A refinement: match the agreed A screen's proportions and subtle artwork. */
+:root[data-theme="gentle"] body {background:#f4eee1}
 :root[data-theme="gentle"] main {
-  position:relative; isolation:isolate; overflow:hidden; max-width:560px;
-  background:linear-gradient(150deg,#fffdf7 0%,#fbf5e9 66%,#f2ead9 100%);
-  min-height:100dvh; padding:42px clamp(18px,5vw,30px) 100px;
-  box-shadow:0 0 32px #66573817;
+  position:relative;isolation:isolate;overflow:hidden;max-width:560px;
+  min-height:100dvh;padding:28px clamp(20px,5.5vw,30px) max(45px,env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,#fffcf5 0%,#fffbf2 70%,#f7f0e1 100%);
+  box-shadow:0 0 22px #66573813;
 }
 :root[data-theme="gentle"] main::before {
   content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
-  background:url("./gentle-decoration.svg") center center / 100% 100% no-repeat;
+  opacity:.42;background:url("./gentle-decoration.svg") center bottom/100% 100% no-repeat;
 }
 :root[data-theme="gentle"] main::after {
   content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
-  opacity:.3;background-image:radial-gradient(#c5b9a2 .45px,transparent .6px);
-  background-size:7px 7px;
+  background:radial-gradient(ellipse at 48% 15%,#fffdfa 0%,transparent 72%);
 }
 :root[data-theme="gentle"] .app-header {
-  display:flex;align-items:center;justify-content:center;gap:15px;
-  margin:13px 0 34px;text-align:left;
+  display:flex;align-items:center;justify-content:center;gap:13px;
+  text-align:left;margin:7px 0 24px;min-height:66px;
 }
 :root[data-theme="gentle"] .header-copy {min-width:0}
-:root[data-theme="gentle"] h1 {
-  margin:0 0 7px;font-size:clamp(21px,5.5vw,28px);letter-spacing:.035em;
-  font-family: "Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
-  white-space:nowrap;
-}
-:root[data-theme="gentle"] header .muted {font-size:14px;color:#4c5346;letter-spacing:.045em}
 :root[data-theme="gentle"] .header-emblem {
-  display:grid;place-items:center;flex:0 0 62px;width:62px;height:62px;
-  border:5px solid #fff;border-radius:50%;background:#244d3b;color:#fff;
-  font-size:37px;font-family:Georgia,serif;
-  box-shadow:0 0 0 2px #2d4937,0 3px 10px #1b342322;
+  display:grid;place-items:center;width:58px;height:58px;flex:0 0 58px;
+  background:#244c3a;color:#fff;border:4px solid #fff;border-radius:50%;
+  font:36px Georgia,serif;box-shadow:0 0 0 1.5px #234b39,0 2px 8px #1b342322;
 }
+:root[data-theme="gentle"] h1 {
+  font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  font-size:clamp(18px,5.4vw,25px);line-height:1.3;letter-spacing:0;
+  margin:0 0 4px;white-space:nowrap;color:#15251b;
+}
+:root[data-theme="gentle"] .app-header .muted {font-size:13px;color:#4f5549;letter-spacing:.025em}
 :root[data-theme="gentle"] .now-card {
-  position:relative;overflow:hidden;margin:0 0 25px;padding:25px 19px 17px;
-  background:#fffdf8;border:1px solid #eadfca;border-radius:22px;
-  text-align:center;box-shadow:0 8px 20px #4c43261b,0 2px 5px #4c432610;
+  position:relative;overflow:hidden;text-align:center;
+  padding:17px 18px 15px;margin:0 0 22px;
+  border-radius:21px;border:1px solid #ebdfcb;background:#fffdf8;
+  box-shadow:0 7px 16px #54492f18,0 1px 4px #54492f0c;
 }
 :root[data-theme="gentle"] .now-card::before,
 :root[data-theme="gentle"] .now-card::after {
-  content:"";position:absolute;width:100px;height:75px;opacity:.5;pointer-events:none;
-  background:radial-gradient(ellipse at 22% 44%,#c8d6bf 0 18%,transparent 19%),
-  radial-gradient(ellipse at 65% 30%,#a8bfa2 0 17%,transparent 18%),
-  radial-gradient(ellipse at 72% 70%,#c1d0b7 0 20%,transparent 21%);
+  content:"";position:absolute;width:83px;height:78px;opacity:.25;pointer-events:none;
+  background:radial-gradient(ellipse at 19% 40%,#b9c9a9 0 14%,transparent 15%),
+  radial-gradient(ellipse at 52% 20%,#acc0a4 0 16%,transparent 17%),
+  radial-gradient(ellipse at 70% 71%,#afc4a7 0 17%,transparent 18%);
 }
-:root[data-theme="gentle"] .now-card::before {left:-37px;top:-23px;transform:rotate(-25deg)}
-:root[data-theme="gentle"] .now-card::after {right:-32px;bottom:0;transform:rotate(110deg)}
+:root[data-theme="gentle"] .now-card::before {left:-35px;top:-29px;transform:rotate(-18deg)}
+:root[data-theme="gentle"] .now-card::after {right:-31px;bottom:-16px;transform:rotate(115deg)}
 :root[data-theme="gentle"] .today-label {
-  position:relative;z-index:1;display:inline-block;border-radius:99px;
-  background:#3e6b52;color:white;font-size:17px;font-weight:700;
-  margin:0 0 24px;padding:9px 22px;
+  position:relative;z-index:1;display:inline-block;
+  padding:7px 18px;margin:0 0 14px;border-radius:99px;
+  color:#fff;background:#3c6b52;font-weight:650;font-size:15px;line-height:1.45;
 }
 :root[data-theme="gentle"] #song {
-  position:relative;z-index:1;color:#17241a;
-  font-size:clamp(25px,7vw,36px);line-height:1.4;font-weight:700;
-  font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
-  margin:0 0 24px;overflow-wrap:anywhere;
+  position:relative;z-index:1;margin:0 0 14px;
+  font:700 clamp(24px,7.2vw,35px)/1.33 "Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  overflow-wrap:anywhere;color:#17251a;
 }
 :root[data-theme="gentle"] .song-details {
-  position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;
-  gap:10px;margin:0 0 8px;
+  position:relative;z-index:1;display:flex;align-items:center;
+  justify-content:space-between;gap:9px;margin:0;
 }
-:root[data-theme="gentle"] #today {margin:0;font-size:15px;color:#333a32;text-align:left}
+:root[data-theme="gentle"] #today {margin:0;text-align:left;white-space:nowrap;font-size:14px;color:#30372d}
 :root[data-theme="gentle"] .song-number {
-  flex:0 0 auto;display:inline-block;border-radius:99px;padding:7px 13px;
-  font-size:16px;font-weight:700;background:#f1e6cf;color:#333a32;
+  flex-shrink:0;padding:6px 12px;border-radius:99px;
+  background:#f2e7d1;color:#354031;font-weight:700;font-size:14px;
 }
-:root[data-theme="gentle"] #status {font-size:13px;margin:11px 0 0;color:#56665a;min-height:0}
+:root[data-theme="gentle"] #status {
+  position:absolute;width:1px;height:1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;
+}
 :root[data-theme="gentle"] .primary {
-  margin:0 0 18px;min-height:90px;border:1px solid #74977e;border-radius:48px;
-  background:linear-gradient(#44795b,#28543f);color:#fff;
-  box-shadow:inset 0 2px 1px #fff5,0 5px 0 #204735,0 9px 15px #28473429;
-  font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
-  font-size:clamp(20px,5.8vw,27px);letter-spacing:.035em;
+  min-height:79px;margin:0 0 19px;padding:13px 16px;
+  border:1px solid #87a88f;border-radius:99px;
+  background:linear-gradient(#42785b,#285941);color:#fff;
+  box-shadow:inset 0 2px 1px #ffffff65,0 4px 0 #23503a,0 8px 13px #29463322;
+  font:700 clamp(19px,5.8vw,25px)/1.3 "Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  letter-spacing:0;
 }
 :root[data-theme="gentle"] #play[aria-pressed="true"] {
-  background:linear-gradient(#a27b4c,#805b34);box-shadow:inset 0 2px 1px #fff4,0 4px 0 #6e4e2b;
+  background:linear-gradient(#ac8857,#815f35);
+  box-shadow:inset 0 2px 1px #ffffff4a,0 4px 0 #6e4e2b;
 }
 :root[data-theme="gentle"] .playback-time {
-  color:#253329;margin:15px 5px 8px;font-size:15px;font-weight:600;
+  display:flex;justify-content:space-between;gap:10px;
+  margin:0 4px 7px;color:#263328;font-size:14px;font-weight:650;
+}
+:root[data-theme="gentle"] .progress-wrap {
+  position:relative;margin:0 4px 24px;height:17px;
+}
+:root[data-theme="gentle"] .progress-wrap::after {
+  content:"";position:absolute;left:calc(var(--progress-pct,0)*1%);top:1px;
+  width:15px;height:15px;transform:translateX(-50%);border-radius:50%;
+  background:#fff;box-shadow:0 1px 5px #142c262b;
+  pointer-events:none;
 }
 :root[data-theme="gentle"] .playback-progress {
-  height:11px;margin:0 4px 39px;width:calc(100% - 8px);
-  background:#d9e0d7;border:1px solid #bdc9b9;
+  width:100%;height:10px;margin:3px 0 0;
+  appearance:none;border:0;border-radius:99px;overflow:hidden;background:#d6e0d9;
 }
-:root[data-theme="gentle"] .playback-progress::-webkit-progress-bar {background:#d9e0d7}
-:root[data-theme="gentle"] .playback-progress::-webkit-progress-value {background:#34694d;border-radius:99px}
-:root[data-theme="gentle"] .playback-progress::-moz-progress-bar {background:#34694d}
-:root[data-theme="gentle"] details {margin-top:0}
+:root[data-theme="gentle"] .playback-progress::-webkit-progress-bar {background:#d6e0d9}
+:root[data-theme="gentle"] .playback-progress::-webkit-progress-value {background:#326a4c;border-radius:99px}
+:root[data-theme="gentle"] .playback-progress::-moz-progress-bar {background:#326a4c}
+:root[data-theme="gentle"] #error:empty {display:none}
+:root[data-theme="gentle"] details {margin:0}
 :root[data-theme="gentle"] summary {
-  display:flex;gap:12px;align-items:center;min-height:72px;
-  padding:15px 18px;border-radius:16px;border:1px solid #dcd2bd;
-  background:#fffaf0;box-shadow:0 3px 12px #4c432611;font-size:17px;
+  display:flex;align-items:center;gap:12px;min-height:66px;
+  padding:11px 15px;background:#fffbf4;border:1px solid #e1d5c3;
+  border-radius:15px;box-shadow:0 2px 9px #4e432415;
+  font-weight:700;font-size:16px;color:#273529;
 }
 :root[data-theme="gentle"] summary::marker {content:""}
 :root[data-theme="gentle"] summary::-webkit-details-marker {display:none}
-:root[data-theme="gentle"] .settings-symbol {font-size:24px;color:#354a37}
-:root[data-theme="gentle"] .settings-chevron {margin-left:auto;font-size:25px}
+:root[data-theme="gentle"] .settings-symbol {font-size:21px;color:#364737}
+:root[data-theme="gentle"] .settings-chevron {margin-left:auto;font-size:24px}
 :root[data-theme="gentle"] details[open] .settings-chevron {transform:rotate(180deg)}
-:root[data-theme="gentle"] details .card {background:#fffdf9;color:#25382d}
-@media(max-width:365px){
+:root[data-theme="gentle"] details .card {background:#fffdf8;color:#25382d}
+@media(max-width:365px) {
+  :root[data-theme="gentle"] main {padding-inline:16px}
   :root[data-theme="gentle"] .app-header {gap:10px}
-  :root[data-theme="gentle"] .header-emblem {flex-basis:49px;width:49px;height:49px;font-size:29px}
-  :root[data-theme="gentle"] h1 {font-size:20px}
-  :root[data-theme="gentle"] .now-card {padding-inline:14px}
+  :root[data-theme="gentle"] .header-emblem {width:48px;height:48px;flex-basis:48px;font-size:29px}
+  :root[data-theme="gentle"] h1 {font-size:18px}
+  :root[data-theme="gentle"] .now-card {padding-inline:13px}
+  :root[data-theme="gentle"] #today {font-size:13px}
 }
 
 </style>
@@ -269,7 +286,7 @@ td, th {
 </button>
 
 <div class="playback-time" aria-label="再生時間"><span id="elapsed">経過 0:00</span><span id="remaining">全体 --:--</span></div>
-<progress class="playback-progress" id="progress" max="100" value="0" aria-label="再生の進み具合"></progress>
+<div class="progress-wrap" id="progress-wrap"><progress class="playback-progress" id="progress" max="100" value="0" aria-label="再生の進み具合"></progress></div>
 <audio id="audio" preload="none"></audio>
 
 <p id="error" role="alert"></p>
@@ -285,7 +302,7 @@ td, th {
 </section>
 <section class="card">
 <h2>再生の詳細操作</h2>
-<p class="muted">通常は上の大きなボタンだけで操作できます。</p>
+<p class="muted">通常は上の大きなボタンだけで操作できます。Bluetoothスピーカーへの接続は端末の設定で行ってください。</p>
 <button id="restart" class="secondary">↺ 本日の歌を最初から再生</button>
 </section>
 
@@ -347,10 +364,7 @@ MP3形式の7曲をまとめて選択してください。
 </section>
 </details>
 
-<p class="muted">
-Bluetoothスピーカーへの接続は、
-スマホのBluetooth設定から行ってください。
-</p>
+
 
 </main>
 
@@ -398,7 +412,9 @@ function updatePlaybackTime() {
   const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
   $("elapsed").textContent = `経過 ${formatTime(elapsed)}`;
   $("remaining").textContent = `全体 ${duration ? formatTime(duration) : "--:--"}`;
-  $("progress").value = duration ? Math.min(100, elapsed / duration * 100) : 0;
+  const progress = duration ? Math.min(100, elapsed / duration * 100) : 0;
+  $("progress").value = progress;
+  $("progress-wrap").style.setProperty("--progress-pct", progress.toFixed(2));
 }
 ["loadedmetadata","durationchange","timeupdate","seeked","emptied","ended"].forEach(event => {
   audio.addEventListener(event, updatePlaybackTime);
@@ -454,13 +470,7 @@ function reportError(message) {
 function refresh() {
   const now = new Date();
 
-  $("today").textContent =
-    now.toLocaleDateString("ja-JP", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      weekday: "long"
-    });
+  $("today").textContent = `${now.getMonth()+1}月${now.getDate()}日（${"日月火水木金土"[now.getDay()]}）`;
 
   $("count").textContent =
     `登録曲数：${songs.length}曲 / 7曲`;
