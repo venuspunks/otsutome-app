@@ -274,6 +274,28 @@ td, th {
   :root[data-theme="gentle"] #today {font-size:13px}
 }
 
+/* Theme A: user-selected supplied artwork (haikei.png + footer.png). */
+:root[data-theme="gentle"] main::before {
+  content:""; position:absolute; z-index:-1; pointer-events:none;
+  left:0; right:0; top:0; bottom:0; opacity:.72;
+  background-image:url("./haikei.png");
+  background-repeat:no-repeat;
+  background-size:100% auto;
+  background-position:center 105px;
+}
+:root[data-theme="gentle"] main::after {
+  content:""; position:absolute; z-index:-1; pointer-events:none;
+  left:0;right:0;bottom:0;height:clamp(125px,22vh,195px);
+  opacity:1;
+  background-image:url("./footer.png");
+  background-repeat:no-repeat;
+  background-size:100% auto;
+  background-position:center bottom;
+}
+:root[data-theme="gentle"] .now-card::before,
+:root[data-theme="gentle"] .now-card::after {display:none}
+/* Other themes retain their existing design. */
+
 </style>
 </head>
 <body>
