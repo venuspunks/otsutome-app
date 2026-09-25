@@ -139,6 +139,10 @@ td, th {
 .settings-chevron {margin-left:auto}
 .settings-symbol {margin-right:7px}
 :root[data-theme="gentle"] .app-header .header-emblem {display:grid}
+/* Ver.0.7-A refinement: align control position and ornamental restraint. */
+:root[data-theme="gentle"] main {display:flex;flex-direction:column;min-height:100dvh;padding-bottom:max(58px,env(safe-area-inset-bottom))}
+:root[data-theme="gentle"] details {margin-top:auto;padding-top:30px}
+:root[data-theme="gentle"] .now-card::before,:root[data-theme="gentle"] .now-card::after {opacity:.16}
 /* Ver.0.7-A refinement: match the agreed A screen's proportions and subtle artwork. */
 :root[data-theme="gentle"] body {background:#f4eee1}
 :root[data-theme="gentle"] main {
