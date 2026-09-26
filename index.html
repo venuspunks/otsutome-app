@@ -542,8 +542,19 @@ function sortFiles(files) {
   );
 }
 
+const SONG_TITLES = Object.freeze({
+  "01_yorozuyo": "よろづよ八首",
+  "02_mika1.2": "一下り目・二下り目",
+  "03_mika3.4": "三下り目・四下り目",
+  "04_mika5.6": "五下り目・六下り目",
+  "05_mika7.8": "七下り目・八下り目",
+  "06_mika9.10": "九下り目・十下り目",
+  "07_mika11.12": "十一下り目・十二下り目"
+});
+
 function cleanName(name) {
-  return name.replace(/\.mp3$/i, "");
+  const base = name.replace(/\.mp3$/i, "");
+  return SONG_TITLES[base.toLowerCase()] || base;
 }
 
 function reportError(message) {
