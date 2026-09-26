@@ -1,5 +1,5 @@
 /* App shell only: private MP3 files and IndexedDB are never cached here. */
-const CACHE = "otsutome-shell-v17";
+const CACHE = "otsutome-shell-v18";
 const BASE = self.registration.scope;
 const SHELL = [BASE, new URL("index.html",BASE).href, new URL("manifest.webmanifest",BASE).href, new URL("icon.png",BASE).href, new URL("icon-512.png",BASE).href, new URL("gentle-decoration.svg",BASE).href];
 const OPTIONAL_ARTWORK = [new URL("gentle-footer.png",BASE).href,new URL("gentle-leaves.png",BASE).href];
@@ -43,3 +43,4 @@ self.addEventListener("fetch", event => {
   if (!SHELL.includes(url.href)) return;
   event.respondWith(caches.match(req).then(hit => hit || fetch(req)));
 });
+
