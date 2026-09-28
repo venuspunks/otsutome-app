@@ -401,28 +401,12 @@ td, th {
 
 <section class="card">
 
-<h2>① 音源の登録</h2>
-<p>
-MP3形式の7曲をまとめて選択してください。
-音源はファイル名の番号順に登録します。
-</p>
+<h2>音源の準備</h2>
+<p class="muted">初回は音源7曲（約118MB）を端末に保存します。保存後はオフラインでも再生できます。</p>
+<p id="storage" class="muted" role="status" aria-live="polite">音源を確認中…</p>
+<button id="retry-audio" class="secondary" type="button" hidden>音源の保存を再試行</button>
 
-<input
- id="files"
- type="file"
- accept=".mp3,audio/mpeg"
- multiple
->
-
-<p id="count">登録曲数：確認中</p>
-<p id="storage" class="muted"></p>
-
-<small>
-ファイル名の例：
-01_曲名.mp3 ～ 07_曲名.mp3
-</small>
-
-<h2>② 開始曜日</h2>
+<h2>開始曜日</h2>
 
 <label for="weekday">
 1曲目を再生する曜日
@@ -442,7 +426,7 @@ MP3形式の7曲をまとめて選択してください。
   曜日設定を保存
 </button>
 
-<h2>③ 曜日別の再生予定</h2>
+<h2>曜日別の再生予定</h2>
 
 <table>
   <thead>
@@ -485,14 +469,15 @@ let savedTheme="gentle";
 try{savedTheme=localStorage.getItem("otsutome_design_theme")||"gentle"}catch(_){}
 applyTheme(savedTheme);
 document.querySelectorAll('input[name="theme"]').forEach(input=>input.addEventListener("change",()=>applyTheme(input.value,true)));
-const DB_NAME = "otsutome_mobile_v3";
-const STORE = "songs";
-
-let db = null;
-let songs = [];
+const AUDIO_CACHE = "otsutome-audio-v1";
+const AUDIO_FILES = Object.freeze([
+  "01_yorozuyo.mp3", "02_mika1.2.mp3", "03_mika3.4.mp3",
+  "04_mika5.6.mp3", "05_mika7.8.mp3", "06_mika9.10.mp3",
+  "07_mika11.12.mp3"
+]);
+const songs = AUDIO_FILES.map(name => ({name}));
 let currentIndex = -1;
 let currentUrl = null;
-let saving = false;
 let playPending = false;
 function formatTime(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) return "--:--";
@@ -546,7 +531,7 @@ function updateMainButton() {
   icon.className = "button-icon " + (mode === "pause" ? "pause-icon" : "play-icon");
   button.setAttribute("aria-label", label.textContent);
   button.setAttribute("aria-pressed", String(playing));
-  button.disabled = saving || playPending || !db || songs.length !== 7;
+  button.disabled = playPending;
 }
 
 function readWeekday() {
@@ -572,15 +557,6 @@ function todayIndex() {
   ) % 7;
 }
 
-function sortFiles(files) {
-  return [...files].sort((a, b) =>
-    a.name.localeCompare(b.name, "ja", {
-      numeric: true,
-      sensitivity: "base"
-    })
-  );
-}
-
 const SONG_TITLES = Object.freeze({
   "01_yorozuyo": "よろづよ八首",
   "02_mika1.2": "一下り目・二下り目",
@@ -601,25 +577,14 @@ function reportError(message) {
 }
 
 function refresh() {
-  $("count").textContent =
-    `登録曲数：${songs.length}曲 / 7曲`;
-
   const index = todayIndex();
-
-  if (songs.length !== 7) {
-    $("song").classList.add("is-message");
-    $("song").textContent =
-      "音源を7曲登録してください";
-    $("status").textContent = "音源未登録";
-    return;
-  }
 
   $("song").classList.remove("is-message");
   $("song").textContent = cleanName(
     songs[index].name
   );
 
-  if (audio.paused && !saving) {
+  if (audio.paused) {
     $("status").textContent =
       "再生待機中";
   }
@@ -641,9 +606,7 @@ function updateSchedule() {
 
     dayCell.textContent = DAYS[day];
 
-    songCell.textContent = songs.length === 7
-      ? cleanName(songs[index].name)
-      : `${index + 1}曲目`;
+    songCell.textContent = cleanName(songs[index].name);
 
     row.append(dayCell, songCell);
     tbody.appendChild(row);
@@ -665,185 +628,53 @@ function clearAudio() {
   updateMainButton();
 }
 
-function openDatabase() {
-  return new Promise((resolve, reject) => {
-    if (!("indexedDB" in window)) {
-      reject(new Error(
-        "このブラウザは音源保存に対応していません"
-      ));
+const audioUrl = index => new URL("./audio/" + AUDIO_FILES[index], location.href).href;
+let preparingAudio = false;
+
+async function prepareAudio() {
+  if (preparingAudio) return;
+  preparingAudio = true;
+  $("retry-audio").hidden = true;
+  try {
+    if (location.protocol === "file:") {
+      $("storage").textContent = "試作版には音源7曲が含まれています。再生ボタンで確認できます。";
       return;
     }
-
-    const request = indexedDB.open(DB_NAME, 1);
-
-    request.onupgradeneeded = () => {
-      const database = request.result;
-      if (!database.objectStoreNames.contains(STORE)) {
-        database.createObjectStore(STORE, {
-          keyPath: "id"
-        });
-      }
-    };
-
-    request.onsuccess = () =>
-      resolve(request.result);
-
-    request.onerror = () =>
-      reject(request.error || new Error(
-        "保存領域を開けません"
-      ));
-  });
-}
-
-function loadSongs() {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(
-      STORE, "readonly"
-    );
-    const request = transaction
-      .objectStore(STORE).getAll();
-
-    request.onsuccess = () => {
-      resolve(
-        request.result
-          .sort((a,b) => a.id - b.id)
-          .map(item => item.file)
-      );
-    };
-
-    request.onerror = () =>
-      reject(request.error);
-  });
-}
-
-function saveSongs(files) {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(
-      STORE, "readwrite"
-    );
-
-    const store = transaction.objectStore(STORE);
-
-    store.clear();
-
-    files.forEach((file, index) => {
-      store.put({ id: index, file });
-    });
-
-    transaction.oncomplete = resolve;
-
-    transaction.onerror = () =>
-      reject(transaction.error || new Error(
-        "音源を保存できません"
-      ));
-
-    transaction.onabort = () =>
-      reject(transaction.error || new Error(
-        "音源の保存が中断されました"
-      ));
-  });
-}
-
-$("files").addEventListener(
-  "change", async event => {
-
-    if (saving) return;
-
-    const selected = Array.from(
-      event.target.files || []
-    );
-
-    const valid = selected.filter(file =>
-      /\.mp3$/i.test(file.name)
-    );
-
-    if (
-      selected.length !== 7 ||
-      valid.length !== 7
-    ) {
-      alert("MP3ファイルを7曲選択してください。");
-      event.target.value = "";
-      return;
+    if (!("caches" in window)) {
+      throw new Error("このブラウザでは音源をオフライン保存できません");
     }
-
-    if (!db) {
-      reportError(
-        "音源保存を利用できません。" +
-        "ブラウザの設定を確認してください。"
-      );
-      return;
+    const cache = await caches.open(AUDIO_CACHE);
+    // 本日の歌を先に保存し、続けて残りの6曲を保存する。
+    const order = [todayIndex(), ...AUDIO_FILES.map((_, index) => index).filter(index => index !== todayIndex())];
+    let complete = 0;
+    for (const index of order) {
+      if (await cache.match(audioUrl(index))) complete++;
     }
-
-    const sorted = sortFiles(valid);
-
-    if (!confirm(
-      "選択した7曲で登録音源を入れ替えますか？"
-    )) {
-      event.target.value = "";
-      return;
+    $("storage").textContent = complete === 7
+      ? "音源7曲を保存済みです。オフラインでも再生できます。"
+      : `音源を保存中：${complete} / 7曲（合計約118MB）`;
+    for (const index of order) {
+      const url = audioUrl(index);
+      if (await cache.match(url)) continue;
+      await cache.add(url);
+      complete++;
+      $("storage").textContent = `音源を保存中：${complete} / 7曲（合計約118MB）`;
     }
-
-    saving = true;
-    $("play").disabled = true;
-    $("restart").disabled = true;
-    $("files").disabled = true;
-    $("status").textContent = "音源を保存中";
-    reportError("");
-
-    try {
-      clearAudio();
-      await saveSongs(sorted);
-
-      // 保存後に読み直して確認する
-      songs = await loadSongs();
-
-      if (songs.length !== 7) {
-        throw new Error(
-          "保存した曲数が正しくありません"
-        );
-      }
-
-      updateSchedule();
-      refresh();
-      updateMainButton();
-
-      $("storage").textContent =
-        "音源をこの端末に保存しました。";
-
-      $("status").textContent =
-        "7曲の登録が完了しました";
-
-      alert("7曲を登録・保存しました。");
-
-    } catch (error) {
-      console.error(error);
-
-      reportError(
-        "音源を保存できませんでした。" +
-        "端末の空き容量やブラウザの設定を" +
-        "確認してください。\n" +
-        (error.message || "")
-      );
-
-      try {
-        songs = await loadSongs();
-      } catch (_) {
-        songs = [];
-      }
-
-      updateSchedule();
-      refresh();
-      updateMainButton();
-
-    } finally {
-      saving = false;
-      updateMainButton();
-      $("restart").disabled = false;
-      $("files").disabled = false;
-      event.target.value = "";
+    $("storage").textContent = "音源7曲を保存済みです。オフラインでも再生できます。";
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().catch(() => {});
     }
+  } catch (error) {
+    console.error("音源の保存に失敗しました", error);
+    $("storage").textContent =
+      "音源をすべて保存できませんでした。オンラインでは再生できます。通信と空き容量を確認して再試行してください。";
+    $("retry-audio").hidden = false;
+  } finally {
+    preparingAudio = false;
   }
-);
+}
+
+$("retry-audio").addEventListener("click", prepareAudio);
 
 $("save").addEventListener("click", () => {
   const next = Number($("weekday").value);
@@ -883,37 +714,30 @@ $("save").addEventListener("click", () => {
 });
 
 async function playSong(fromBeginning = false) {
-  if (saving) return;
-
-  if (songs.length !== 7) {
-    alert("先に7曲を登録してください。");
-    return;
-  }
-
+  if (playPending) return;
   const index = todayIndex();
-
-  if (
-    currentIndex !== index ||
-    !audio.getAttribute("src")
-  ) {
-    clearAudio();
-
-    currentUrl = URL.createObjectURL(
-      songs[index]
-    );
-
-    audio.src = currentUrl;
-    currentIndex = index;
-
-  } else if (fromBeginning) {
-    audio.currentTime = 0;
-  }
-
   reportError("");
-
   try {
     playPending = true;
     updateMainButton();
+    if (currentIndex !== index || !audio.getAttribute("src")) {
+      clearAudio();
+      const url = audioUrl(index);
+      // 保存済みなら端末内の音源を使い、未保存ならオンラインで再生する。
+      let cached = null;
+      try {
+        if ("caches" in window) {
+          cached = await (await caches.open(AUDIO_CACHE)).match(url);
+        }
+      } catch (error) {
+        console.warn("保存済み音源を確認できません", error);
+      }
+      if (cached) currentUrl = URL.createObjectURL(await cached.blob());
+      audio.src = currentUrl || url;
+      currentIndex = index;
+    } else if (fromBeginning) {
+      audio.currentTime = 0;
+    }
     await audio.play();
     $("status").textContent = "再生中";
   } catch (error) {
@@ -930,7 +754,7 @@ async function playSong(fromBeginning = false) {
 }
 
 $("play").addEventListener("click", () => {
-  if (playPending || saving) return;
+  if (playPending) return;
   if (!audio.paused && !audio.ended) {
     audio.pause();
     $("status").textContent = "一時停止中";
@@ -994,52 +818,14 @@ setInterval(() => {
 async function initialize() {
   refresh();
   updateSchedule();
-
-  $("play").disabled = true;
-
-  try {
-    db = await openDatabase();
-    songs = await loadSongs();
-
-    updateSchedule();
-    refresh();
-    updateMainButton();
-
-    if (songs.length === 7) {
-      $("storage").textContent =
-        "保存済みの7曲を読み込みました。";
-    } else {
-      $("storage").textContent =
-        "MP3ファイルを7曲登録してください。";
-    }
-
-    // 対応ブラウザでは保存領域の
-    // 自動削除リスクの低減を要求する。
-    if (
-      navigator.storage &&
-      navigator.storage.persist
-    ) {
-      navigator.storage.persist().catch(
-        () => {}
-      );
-    }
-
-  } catch (error) {
-    console.error(error);
-    reportError(
-      "音源の保存領域を開けませんでした。" +
-      "通常モードのブラウザで開き直してください。"
-    );
-    $("status").textContent = "保存機能エラー";
-  } finally {
-    updateMainButton();
-  }
+  updateMainButton();
+  await prepareAudio();
 }
 
 initialize();
 
 // Keep the app shell available when the network is unavailable.
-if ("serviceWorker" in navigator && location.protocol === "https:") {
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js", {scope:"./"})
       .catch(error => console.warn("オフライン起動の設定に失敗しました", error));
@@ -1049,4 +835,3 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
 </script>
 </body>
 </html>
-
