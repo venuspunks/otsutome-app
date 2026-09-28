@@ -1,5 +1,5 @@
 /* App shell cache. The page manages the separate offline MP3 cache. */
-const CACHE = "otsutome-shell-v19";
+const CACHE = "otsutome-shell-v20";
 const BASE = self.registration.scope;
 const SHELL = [BASE, new URL("index.html",BASE).href, new URL("manifest.webmanifest",BASE).href, new URL("icon.png",BASE).href, new URL("icon-512.png",BASE).href, new URL("gentle-decoration.svg",BASE).href];
 const OPTIONAL_ARTWORK = [new URL("gentle-footer.png",BASE).href,new URL("gentle-leaves.png",BASE).href];
