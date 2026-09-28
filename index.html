@@ -78,8 +78,8 @@ audio { width: 100%; margin: 12px 0; }
 .playback-progress::-moz-progress-bar { background: var(--accent); }
 .primary:focus-visible, .secondary:focus-visible { outline: 3px solid #111; outline-offset: 3px; }
 #play[aria-pressed="true"] { background: var(--pressed); }
-details { margin-top: 28px; }
-summary {
+#settings { margin-top: 28px; }
+#settings > summary {
   padding: 17px;
   border-radius: 12px;
   background: var(--secondary);
@@ -142,7 +142,7 @@ td, th {
 :root[data-theme="gentle"] .app-header .header-emblem {display:grid}
 /* Japanese A layout: leave a modest ornamental footer, not an empty screen. */
 :root[data-theme="gentle"] main {display:flex;flex-direction:column;min-height:100dvh;padding-bottom:max(12px,env(safe-area-inset-bottom))}
-:root[data-theme="gentle"] details {margin-top:auto;padding-top:22px}
+:root[data-theme="gentle"] #settings {margin-top:auto;padding-top:22px}
 :root[data-theme="gentle"] .now-card::before,:root[data-theme="gentle"] .now-card::after {opacity:.12}
 /* Ver.0.7-A refinement: match the agreed A screen's proportions and subtle artwork. */
 :root[data-theme="gentle"] body {background:#f4eee1}
@@ -247,23 +247,23 @@ td, th {
 :root[data-theme="gentle"] .playback-progress::-webkit-progress-value {background:#326a4c;border-radius:99px}
 :root[data-theme="gentle"] .playback-progress::-moz-progress-bar {background:#326a4c}
 :root[data-theme="gentle"] #error:empty {display:none}
-:root[data-theme="gentle"] details {margin:0}
-:root[data-theme="gentle"] summary {
+:root[data-theme="gentle"] #settings {margin:0}
+:root[data-theme="gentle"] #settings > summary {
   display:flex;align-items:center;gap:12px;min-height:66px;
   padding:11px 15px;background:#fffbf4;border:1px solid #e1d5c3;
   border-radius:15px;box-shadow:0 2px 9px #4e432415;
   font-weight:700;font-size:16px;color:#273529;
 }
-:root[data-theme="gentle"] summary::marker {content:""}
-:root[data-theme="gentle"] summary::-webkit-details-marker {display:none}
+:root[data-theme="gentle"] #settings > summary::marker {content:""}
+:root[data-theme="gentle"] #settings > summary::-webkit-details-marker {display:none}
 :root[data-theme="gentle"] .settings-symbol {width:24px;height:24px;flex:0 0 24px;color:#364737}
 :root[data-theme="gentle"] .settings-chevron {margin-left:auto;font-size:24px}
-:root[data-theme="gentle"] details[open] .settings-chevron {transform:rotate(180deg)}
-:root[data-theme="gentle"] details .card {background:#fffdf8;color:#25382d}
+:root[data-theme="gentle"] #settings[open] .settings-chevron {transform:rotate(180deg)}
+:root[data-theme="gentle"] #settings .card {background:#fffdf8;color:#25382d}
 :root[data-theme="gentle"] main {padding-bottom:max(12px,env(safe-area-inset-bottom))}
 /* Closed settings card sits above the lower ornament. Expanded settings remain in normal flow. */
-:root[data-theme="gentle"] details:not([open]) {transform:translateY(17px);margin-bottom:0}
-:root[data-theme="gentle"] details[open] {margin-top:26px;padding-top:0}
+:root[data-theme="gentle"] #settings:not([open]) {transform:translateY(17px);margin-bottom:0}
+:root[data-theme="gentle"] #settings[open] {margin-top:26px;padding-top:0}
 :root[data-theme="gentle"] .settings-symbol {stroke-linejoin:round}
 
 @media(max-width:365px) {
@@ -357,6 +357,28 @@ td, th {
   .header-event-art {width:176px}
 }
 
+/* Lyrics expand with the song card; the page remains scrollable. */
+html,body {scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar {display:none;width:0;height:0}
+.now-card {padding-bottom:40px}
+:root[data-theme="gentle"] .now-card {padding-bottom:40px}
+.now-card .lyrics-disclosure {margin:14px 0 0;padding-top:10px;border-top:1px solid #e9e0d1;text-align:left}
+.now-card .lyrics-disclosure > summary {
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:52px;padding:10px 12px;border:1px solid #e4d8c5;border-radius:12px;
+  background:#fffbf4;color:#35533f;font:650 15px/1.4 system-ui,sans-serif;
+  list-style:none;cursor:pointer;
+}
+.lyrics-disclosure > summary::marker {content:""}
+.lyrics-disclosure > summary::-webkit-details-marker {display:none}
+.lyrics-disclosure > summary::after {content:"⌄";font-size:18px;line-height:1}
+.lyrics-disclosure[open] > summary::after {transform:rotate(180deg)}
+.lyrics-disclosure > summary:focus-visible {outline:3px solid var(--accent);outline-offset:3px}
+.lyrics-content {height:auto;max-height:none;overflow:visible;padding:14px 6px 0;color:#273329;font:400 15px/1.85 "Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;white-space:pre-wrap}
+.lyrics-content h3 {margin:18px 0 8px;color:#3e6b52;font:400 17px/1.5 system-ui,sans-serif}
+.lyrics-content h3:first-child {margin-top:0}
+.lyric-stanza {margin:0 0 13px}
+
 </style>
 </head>
 <body>
@@ -370,6 +392,10 @@ td, th {
   <h1 class="card-title">みかぐらうた</h1>
   <h2 class="today-label">本日のおてふり</h2>
   <div id="song" class="is-message">音源を確認中</div>
+  <details class="lyrics-disclosure" id="lyrics-details">
+    <summary>歌詞を見る</summary>
+    <div class="lyrics-content" id="lyrics-content"></div>
+  </details>
   <p id="status" aria-live="polite">準備中</p>
 </section>
 
@@ -567,6 +593,8 @@ const SONG_TITLES = Object.freeze({
   "07_mika11.12": "十一下り目・十二下り目"
 });
 
+const SONG_LYRICS = Object.freeze([{"title":"よろづよ八首","sections":[["よろづよ八首",["よろづよのせかい一れつみはらせど\nむねのわかりたものはない","そのはずやといてきかしたことハない\nしらぬがむりでハないわいな","このたびはかみがおもてへあらわれて\nなにかいさいをときゝかす","このところやまとのぢばのかみがたと\nいうていれどももとしらぬ","このもとをくはしくきいた事ならバ\nいかなものでもこいしなる","きゝたくバたづねくるならいうてきかす\nよろづいさいのもとなるを","かみがでゝなにかいさいをとくならバ\nせかい一れついさむなり","一れつにはやくたすけをいそぐから\nせかいのこゝろもいさめかけ"]]]},{"title":"一下り目・二下り目","sections":[["一下り目",["一ッ　正月こゑのさづけは\nやれめづらしい","二ニ　につこりさづけもろたら\nやれたのもしや","三ニ　さんざいこゝろをさだめ","四ッ　よのなか","五ッ　りをふく","六ッ　むしやうにでけまわす","七ッ　なにかにつくりとるなら","八ッ　やまとハほうねんや","九ッ　こゝまでついてこい","十ド　とりめがさだまりた"]],["二下り目",["とん／＼とんと正月をどりはじめハ\nやれおもしろい","二ッ　ふしぎなふしんかゝれバ\nやれにぎはしや","三ッ　みにつく","四ッ　よなほり","五ッ　いづれもつきくるならば","六ッ　むほんのねえをきらふ","七ッ　なんじふをすくひあぐれバ","八ッ　やまひのねをきらふ","九ッ　こゝろをさだめゐやうなら","十デ　ところのをさまりや"]]]},{"title":"三下り目・四下り目","sections":[["三下り目",["一ッ　ひのもとしよやしきの\nつとめのばしよハよのもとや","二ッ　ふしぎなつとめばしよハ\nたれにたのみはかけねども","三ッ　みなせかいがよりあうて\nでけたちきたるがこれふしぎ","四ッ　よう／＼こゝまでついてきた\nじつのたすけハこれからや","五ッ　いつもわらはれそしられて\nめづらしたすけをするほどに","六ッ　むりなねがひはしてくれな\nひとすぢごゝろになりてこい","七ッ　なんでもこれからひとすぢに\nかみにもたれてゆきまする","八ッ　やむほどつらいことハない\nわしもこれからひのきしん","九ッ　こゝまでしん／＼゛したけれど\nもとのかみとハしらなんだ","十ド　このたびあらはれた\nじつのかみにはさうゐない"]],["四下り目",["一ッ　ひとがなにごといはうとも\nかみがみているきをしずめ","二ッ　ふたりのこゝろををさめいよ\nなにかのことをもあらはれる","三ッ　みなみてゐよそばなもの\nかみのすることなすことを","四ッ　よるひるどんちやんつとめする\nそばもやかましうたてかろ","五ッ　いつもたすけがせくからに\nはやくやうきになりてこい","六ッ　むらかたはやくにたすけたい\nなれどこゝろがわからいで","七ッ　なにかよろづのたすけあい\nむねのうちよりしあんせよ","八ッ　やまひのすつきりねはぬける\nこゝろハだん／＼いさみくる","九ッ　こゝはこのよのごくらくや\nわしもはや／＼まゐりたい","十ド　このたびむねのうち\nすみきりましたがありがたい"]]]},{"title":"五下り目・六下り目","sections":[["五下り目",["一ッ　ひろいせかいのうちなれバ\nたすけるところがまゝあらう","二ッ　ふしぎなたすけハこのところ\nおびやはうそのゆるしだす","三ッ　みづとかみとはおなじこと\nこゝろのよごれをあらひきる","四ッ　よくのないものなけれども\nかみのまへにハよくはない","五ツ　いつまでしん／＼゛したとても\nやうきづくめであるほどに","六ッ　むごいこゝろをうちわすれ\nやさしきこゝろになりてこい","七ッ　なんでもなんぎハさゝぬぞへ\nたすけいちじよのこのところ","八ッ　やまとばかりやないほどに\nくに／＼までへもたすけゆく","九ッ　こゝはこのよのもとのぢば\nめづらしところがあらはれた\n\nどうでもしん／＼゛するならバ\nかうをむすぼやないかいな"]],["六下り目",["一ッ　ひとのこゝろといふものハ\nうたがひぶかいものなるぞ","二ッ　ふしぎなたすけをするからに\nいかなることをもみさだめる","三ッ　みなせかいのむねのうち\nかゞみのごとくにうつるなり","四ッ　ようこそつとめについてきた\nこれがたすけのもとだてや","五ツ　いつもかぐらやてをどりや\nすゑではめづらしたすけする","六ッ　むしやうやたらにねがひでる\nうけとるすぢもせんすぢや","七ッ　なんぼしん／＼゛したとても\nこゝろえちがひはならんぞへ","八ッ　やつぱりしん／＼゛せにやならん\nこゝろえちがひはでなほしや","九ッ　こゝまでしん／＼゛してからハ\nひとつのかうをもみにやならぬ","十ド　このたびみえました\nあふぎのうかゞひこれふしぎ"]]]},{"title":"七下り目・八下り目","sections":[["七下り目",["一ッ　ひとことはなしハひのきしん\nにほひばかりをかけておく","二ッ　ふかいこゝろがあるなれバ\nたれもとめるでないほどに","三ッ　みなせかいのこゝろにハ\nでんぢのいらぬものハない","四ッ　よきぢがあらバ一れつに\nたれもほしいであらうがな","五ツ　いづれのかたもおなしこと\nわしもあのぢをもとめたい","六ッ　むりにどうせといはんでな\nそこはめい／＼のむねしだい","七ッ　なんでもでんぢがほしいから\nあたへハなにほどいるとても","八ッ　やしきハかみのでんぢやで\nまいたるたねハみなはへる","九ッ　こゝハこのよのでんぢなら\nわしもしつかりたねをまこ","十ド　このたびいちれつに\nようこそたねをまきにきた\n\nたねをまいたるそのかたハ\nこえをおかずにつくりとり"]],["八下り目",["一ッ　ひろいせかいやくになかに\nいしもたちきもないかいな","二ッ　ふしぎなふしんをするなれど\nたれにたのみハかけんでな","三ッ　みなだん／＼とせかいから\nよりきたことならでけてくる","四ッ　よくのこゝろをうちわすれ\nとくとこゝろをさだめかけ","五ツ　いつまでみあわせゐたるとも\nうちからするのやないほどに","六ッ　むしやうやたらにせきこむな\nむねのうちよりしあんせよ","七ッ　なにかこゝろがすんだなら\nはやくふしんにとりかゝれ","八ッ　やまのなかへといりこんで\nいしもたちきもみておいた","九ッ　このききらうかあのいしと\nおもへどかみのむねしだい","十ド　このたびいちれつに\nすみきりましたがむねのうち"]]]},{"title":"九下り目・十下り目","sections":[["九下り目",["一ッ　ひろいせかいをうちまわり\n一せん二せんでたすけゆく","二ッ　ふじゆうなきやうにしてやらう\nかみのこゝろにもたれつけ","三ッ　みれバせかいのこゝろにハ\nよくがまじりてあるほどに","四ッ　よくがあるならやめてくれ\nかみのうけとりでけんから","五ツ　いづれのかたもおなじこと\nしあんさだめてついてこい","六ッ　むりにでやうといふでない\nこゝろさだめのつくまでハ","七ッ　なか／＼このたびいちれつに\nしつかりしあんをせにやならん","八ッ　やまのなかでもあちこちと\nてんりわうのつとめする","九ッ　こゝでつとめをしてゐれど\nむねのわかりたものハない\n\nとてもかみなをよびだせば\nはやくこもとへたづねでよ"]],["十下り目",["一ッ　ひとのこゝろといふものハ\nちよとにわからんものなるぞ","二ッ　ふしぎなたすけをしてゐれど\nあらはれでるのがいまはじめ","三ッ　みづのなかなるこのどろう\nはやくいだしてもらひたい","四ッ　よくにきりないどろみづや\nこゝろすみきれごくらくや","五ツ　いつ／＼までもこのことハ\nはなしのたねになるほどに","六ッ　むごいことばをだしたるも\nはやくたすけをいそぐから","七ッ　なんぎするのもこゝろから\nわがみうらみであるほどに","八ッ　やまひはつらいものなれど\nもとをしりたるものハない","九ッ　このたびまでハいちれつに\nやまひのもとハしれなんだ","十ド　このたびあらはれた\nやまひのもとハこゝろから"]]]},{"title":"十一下り目・十二下り目","sections":[["十一下り目",["一ッ　ひのもとしよやしきの\nかみのやかたのぢばさだめ","二ッ　ふうふそろうてひのきしん\nこれがだいゝちものだねや","三ッ　みれバせかいがだん／＼と\nもつこになうてひのきしん","四ッ　よくをわすれてひのきしん\nこれがだいゝちこえとなる","五ツ　いつ／＼までもつちもちや\nまだあるならバわしもゆこ","六ッ　むりにとめるやないほどに\nこゝろあるならたれなりと","七ッ　なにかめづらしつちもちや\nこれがきしんとなるならバ","八ッ　やしきのつちをほりとりて\nところかへるばかりやで","九ッ　このたびまではいちれつに\nむねがわからんざんねんな","十ド　ことしハこえおかず\nじふぶんものをつくりとり\n\nやれたのもしやありがたや"]],["十二下り目",["一ッ　いちにだいくのうかゞひに\nなにかのこともまかせおく","二ッ　ふしぎなふしんをするならバ\nうかゞひたてゝていひつけよ","三ッ　みなせかいからだん／＼と\nきたるだいくににほいかけ","四ッ　よきとうりやうかあるならバ\nはやくこもとへよせておけ","五ツ　いづれとうりやうよにんいる\nはやくうかゞいたてゝみよ","六ッ　むりにこいとハいはんでな\nいづれだん／＼つきくるで","七ッ　なにかめづらしこのふしん\nしかけたことならきりハない","八ッ　やまのなかへとゆくならバ\nあらきとうりやうつれてゆけ","九ッ　これハこざいくとうりやうや\nたてまへとうりやうこれかんな","十ド　このたびいちれつに\nだいくのにんもそろひきた"]]]}]);
+
 function cleanName(name) {
   const base = name.replace(/\.mp3$/i, "");
   return SONG_TITLES[base.toLowerCase()] || base;
@@ -576,6 +604,27 @@ function reportError(message) {
   $("error").textContent = message;
 }
 
+let renderedLyricsIndex = -1;
+function renderLyrics(index) {
+  if (index === renderedLyricsIndex) return;
+
+  const fragment = document.createDocumentFragment();
+  for (const [heading, stanzas] of SONG_LYRICS[index].sections) {
+    const title = document.createElement("h3");
+    title.textContent = heading;
+    fragment.appendChild(title);
+    for (const text of stanzas) {
+      const stanza = document.createElement("p");
+      stanza.className = "lyric-stanza";
+      stanza.textContent = text;
+      fragment.appendChild(stanza);
+    }
+  }
+  $("lyrics-content").replaceChildren(fragment);
+  $("lyrics-details").open = false;
+  renderedLyricsIndex = index;
+}
+
 function refresh() {
   const index = todayIndex();
 
@@ -583,6 +632,7 @@ function refresh() {
   $("song").textContent = cleanName(
     songs[index].name
   );
+  renderLyrics(index);
 
   if (audio.paused) {
     $("status").textContent =
